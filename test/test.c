@@ -1,28 +1,34 @@
+#include <assert.h>
 #include <stdio.h>
 
 #include <slice.h>
 
-int main(void) {
+void test_slice_init() {
     Slice s;
+    slice_init(&s, sizeof(double));
 
-    slice_init(&s , sizeof(int));
+    assert(s.data == NULL);
+    assert(s.size == sizeof(double));
+    assert(s.cap == 0);
+    assert(s.len == 0);
+}
+
+void test_slice_reserve() {
+    Slice s;
+    slice_init(&s, sizeof(int));
+    slice_reserve(&s, 67);
+
+    assert(s.data != NULL);
+    assert(s.cap >= sizeof(int) * 67);
+    assert(s.len == 0);
+}
+
+int main(void) {
     
-    for (size_t i = 0; i < 10; i++) {
-        slice_push(&s, &(int){i});
-    }
-    
-    for(SliceIter it = slice_iter(&s); slice_next(&it);) {
-        int *element = it.value;
-        printf("Value: %d\n", *element);
-    }
+    test_slice_init();
+    test_slice_reserve();
 
-    printf("Cap: %zu\n", s.cap);
-
-    slice_clear(&s);
-
-    printf("Cap: %zu\n", s.cap);
-
-    slice_deinit(&s);
+    printf("Test complete!");
 
     return 0;
 }

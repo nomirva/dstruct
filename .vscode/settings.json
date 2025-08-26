@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "slice.h": "c",
+        "stdbool.h": "c"
+    }
+}
