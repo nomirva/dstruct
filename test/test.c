@@ -24,7 +24,6 @@ void test_slice_reserve() {
 }
 
 int main(void) {
-    
     test_slice_init();
     test_slice_reserve();
 
