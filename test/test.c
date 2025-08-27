@@ -138,6 +138,36 @@ void test_slice_pop() {
     slice_deinit(&s);
 }
 
+void test_slice_shrink() {
+    Slice s;
+    slice_init(&s, sizeof(int));
+
+    for (size_t i = 0; i < 3; i++) {
+        slice_push(&s, &(int){i});
+    }
+
+    assert(s.cap > s.len);
+    slice_shrink(&s);
+    assert(s.cap == s.len);
+}
+
+void test_slice_iter() {
+    Slice s;
+    slice_init(&s, sizeof(int));
+    
+    for (size_t i = 0; i < 10; i++) {
+        slice_push(&s, &(int){i + 1});
+    }
+
+    int count = 0;
+    for(SliceIter it = slice_iter(&s); slice_next(&it);) {
+        assert(it.next_index == (size_t)count + 1);
+        assert(*(int*)it.value == count + 1);
+        
+        count++;
+    }
+}
+
 int main(void) {
 
     test_slice_init();
@@ -149,6 +179,8 @@ int main(void) {
     test_slice_unshift();
     test_slice_shift();
     test_slice_pop();
+    test_slice_shrink();
+    test_slice_iter();
 
     printf("Test complete!");
 

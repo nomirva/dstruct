@@ -14,7 +14,7 @@ typedef struct {
 
 typedef struct {
 	Slice *slice;
-    size_t index;
+    size_t next_index;
 	void *value;
 } SliceIter;
 

@@ -162,8 +162,8 @@ SliceIter slice_iter(Slice *slice) {
 }
 
 void *slice_next(SliceIter *it) {
-    if (it->index >= it->slice->len / it->slice->size) {
+    if (it->next_index >= it->slice->len / it->slice->size) {
         return it->value = NULL;
     }
-    return it->value = (char*)it->slice->data + it->slice->size * it->index++;
+    return it->value = (char*)it->slice->data + it->slice->size * it->next_index++;
 }
