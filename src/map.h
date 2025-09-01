@@ -13,7 +13,7 @@
 
 typedef struct {
     uint32_t seed;
-    Slice *bucket; // Slice<T>
+    Slice *bucket; /* Slice<T> */
 } Map;
 
 uint64_t _map_murmur3_64(const void* key, int len, uint32_t seed);
