@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <slice.h>
 
@@ -12,6 +13,7 @@
 int main(void) {
 
     test_slice();
+
 
     printf("All tests complete!");
 

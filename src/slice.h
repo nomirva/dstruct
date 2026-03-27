@@ -1,6 +1,8 @@
 #ifndef SLICE_H
 #define SLICE_H
 
+#include "allocator.h"
+
 #include <stdbool.h>
 #include <assert.h>
 
@@ -9,6 +11,7 @@
 typedef bool (*Comparator)(void*);
 
 typedef struct {
+	Allocator allocator;
 	void *data;
 	size_t size;
 	size_t cap;

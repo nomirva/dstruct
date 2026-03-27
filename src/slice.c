@@ -8,6 +8,8 @@ void slice_init(Slice *slice, size_t size) {
 	assert(slice != NULL);
 	assert(size != 0);
 
+	slice->allocator = std_allocator;
+
 	slice->data = NULL;
 	slice->size = size;
 	slice->cap = 0;
@@ -17,7 +19,7 @@ void slice_init(Slice *slice, size_t size) {
 void slice_deinit(Slice *slice) {
 	assert(slice != NULL);
 	
-	free(slice->data);
+	slice->allocator.free(slice->data);
 	slice->data = NULL;
 }
 
@@ -129,7 +131,7 @@ size_t slice_shrink(Slice *slice) {
 
     size_t new_cap = slice->len;
 	if(slice->cap > new_cap) {
-        void *new_data = realloc(slice->data, new_cap * slice->size);
+        void *new_data = slice->allocator.realloc(slice->data, new_cap * slice->size);
         if (new_data == NULL && new_cap != 0)
 			return slice->cap;
 
@@ -175,8 +177,8 @@ Slice *slice_reserve(Slice *slice, size_t new_cap) {
 
     if (new_cap > slice->cap) {
         void *new_data = slice->data 
-			? realloc(slice->data, new_cap * slice->size) 
-			: malloc(new_cap * slice->size);
+			? slice->allocator.realloc(slice->data, new_cap * slice->size) 
+			: slice->allocator.malloc(new_cap * slice->size);
 
         if (new_data == NULL)
             return NULL;
