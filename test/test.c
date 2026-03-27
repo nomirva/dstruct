@@ -14,8 +14,8 @@ int main(void) {
 
     test_slice();
 
-
     printf("All tests complete!");
+    test_allocator_print_stats();
 
     return 0;
 }

@@ -1,10 +1,13 @@
 #include "test.h"
+#include "tallocator.h"
 
 #include <slice.h>
 
 void test_slice_init() {
     Slice s;
     slice_init(&s, sizeof(double));
+
+    s.allocator = test_allocator;
 
     assert(s.data == NULL);
     assert(s.size == sizeof(double));
@@ -17,6 +20,7 @@ void test_slice_init() {
 void test_slice_reserve() {
     Slice s;
     slice_init(&s, sizeof(int));
+    s.allocator = test_allocator;
     slice_reserve(&s, 2);
     slice_reserve(&s, 9);
 
@@ -32,6 +36,7 @@ void test_slice_reserve() {
 void test_slice_insert() {
     Slice s;
     slice_init(&s, sizeof(double));
+    s.allocator = test_allocator;
 
     slice_insert(&s, 0, &(double){0.23});
     assert(*(double*)s.data == 0.23);
