@@ -4,14 +4,12 @@
 #include <stdio.h>
 #include <string.h>
 
-// Структура для отслеживания выделения
 typedef struct allocation_entry {
     void *ptr;
     size_t size;
     struct allocation_entry *next;
 } allocation_entry_t;
 
-// Статистика аллокатора
 static struct {
     allocation_entry_t *head;
     size_t total_allocations;
@@ -23,7 +21,6 @@ static struct {
     size_t invalid_free_count;
 } stats = {0};
 
-// Поиск записи об выделении
 static allocation_entry_t* find_allocation(void *ptr) {
     allocation_entry_t *current = stats.head;
     while (current) {
@@ -35,7 +32,6 @@ static allocation_entry_t* find_allocation(void *ptr) {
     return NULL;
 }
 
-// Добавление записи о выделении
 static void add_allocation(void *ptr, size_t size) {
     if (!ptr) return;
     
@@ -52,7 +48,6 @@ static void add_allocation(void *ptr, size_t size) {
     stats.total_allocated_bytes += size;
 }
 
-// Удаление записи об освобождении
 static bool remove_allocation(void *ptr, bool is_double_free_check) {
     if (!ptr) return false;
     
@@ -89,7 +84,6 @@ static bool remove_allocation(void *ptr, bool is_double_free_check) {
     return false;
 }
 
-// Стандартные функции аллокации с отслеживанием
 static void* tracked_malloc(size_t size) {
     void *ptr = malloc(size);
     if (ptr) {
@@ -119,15 +113,12 @@ static void* tracked_realloc(void *ptr, size_t new_size) {
         return NULL;
     }
     
-    // Находим старую запись
     allocation_entry_t *old_entry = find_allocation(ptr);
     size_t old_size = old_entry ? old_entry->size : 0;
-    
-    // Выполняем realloc
+
     void *new_ptr = realloc(ptr, new_size);
     
     if (new_ptr) {
-        // Удаляем старую запись и добавляем новую
         if (old_entry) {
             remove_allocation(ptr, false);
         }
@@ -137,7 +128,6 @@ static void* tracked_realloc(void *ptr, size_t new_size) {
             // realloc переместил память
         }
     } else if (old_entry) {
-        // realloc failed, память не тронута
         fprintf(stderr, "WARNING: realloc failed for pointer %p, old size %zu, new size %zu\n", 
                 ptr, old_size, new_size);
     }
@@ -153,7 +143,6 @@ static void* tracked_calloc(size_t nmemb, size_t size) {
     return ptr;
 }
 
-// Глобальный тестовый аллокатор
 const Allocator test_allocator = {
     .malloc = tracked_malloc,
     .free = tracked_free,
@@ -161,7 +150,6 @@ const Allocator test_allocator = {
     .calloc = tracked_calloc
 };
 
-// Публичные функции для отладки
 void test_allocator_print_stats(void) {
     printf("\n=== Test Allocator Statistics ===\n");
     printf("Total allocations:  %zu\n", stats.total_allocations);
@@ -187,7 +175,6 @@ void test_allocator_print_stats(void) {
 }
 
 void test_allocator_reset_stats(void) {
-    // Освобождаем все текущие выделения
     allocation_entry_t *current = stats.head;
     while (current) {
         allocation_entry_t *next = current->next;
@@ -196,7 +183,6 @@ void test_allocator_reset_stats(void) {
         current = next;
     }
     
-    // Сбрасываем статистику
     memset(&stats, 0, sizeof(stats));
 }
 

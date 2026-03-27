@@ -19,8 +19,10 @@ void slice_init(Slice *slice, size_t size) {
 void slice_deinit(Slice *slice) {
 	assert(slice != NULL);
 	
-	slice->allocator.free(slice->data);
-	slice->data = NULL;
+	if(slice->data) {
+		slice->allocator.free(slice->data);
+		slice->data = NULL;
+	}
 }
 
 Slice *slice_assign(Slice *dest, Slice *src) {
