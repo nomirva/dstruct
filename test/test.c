@@ -4,7 +4,7 @@
 
 #include <slice.h>
 
-// #define TEST_MESSAGE_OFF
+#define TEST_MESSAGE_OFF
 #include "test.h"
 
 
