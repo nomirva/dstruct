@@ -2,14 +2,17 @@
 #define SLICE_H
 
 #include <stdbool.h>
+#include <assert.h>
+
+#define _SLICE_GROWTH_FACTOR 1.5
 
 typedef bool (*Comparator)(void*);
 
 typedef struct {
 	void *data;
-	size_t size; // element size in byte
-	size_t cap; // capacity
-	size_t len; // length in byte
+	size_t size;
+	size_t cap;
+	size_t len;
 } Slice;
 
 typedef struct {
@@ -24,7 +27,10 @@ void slice_deinit(Slice *slice);
 
 void slice_clear(Slice *slice);
 
-size_t slice_len(Slice *slice);
+static inline size_t slice_len(const Slice *slice) {
+	assert(slice != NULL);
+	return slice->len; 
+}
 
 void *slice_push(Slice *slice, void *value);
 

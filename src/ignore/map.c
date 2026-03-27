@@ -3,9 +3,9 @@
 
 #include "map.h"
 
-void map_init(Map *map) {
+void map_init(Map *map, size_t k_size, size_t v_size) {
     map->seed = (uint32_t)time(NULL);
-    map->bucket = NULL;
+    slice_init(&map->buckets, sizeof(k_size + v_size));
 }
 
 void map_insert(Map *map) {
@@ -13,7 +13,7 @@ void map_insert(Map *map) {
 }
 
 void map_set(Map *map) {
-
+    
 }
 
 void map_delete(Map *map) {
@@ -21,10 +21,10 @@ void map_delete(Map *map) {
 }
 
 uint64_t map_hash(Map *map, void *data) {
-    return _map_murmur3_64(data, 0/* TODO: FIX IT */, map->seed);
+    return _map_murmur3_64(data, map->k_size, map->seed);
 }
 
-uint64_t _map_murmur3_64(void* key, int len, uint32_t seed) {
+uint64_t _map_murmur3_64(const void* key, int len, uint32_t seed) {
     const uint8_t* data = (const uint8_t*)key;
     const int nblocks = len / 8;
     
