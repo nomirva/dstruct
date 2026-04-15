@@ -3,67 +3,84 @@
 
 #include "allocator.h"
 
+#include <stdint.h>
 #include <stdbool.h>
 #include <assert.h>
 
 #define _SLICE_GROWTH_FACTOR 1.5
 
-typedef bool (*Comparator)(void*);
+typedef struct {
+	Allocator allocator;
+	size_t reserve;
+} SliceParams;
+
 
 typedef struct {
 	Allocator allocator;
-	void *data;
 	size_t size;
 	size_t cap;
 	size_t len;
-} Slice;
+} SliceHeader;
 
-typedef struct {
-	Slice *slice;
-    size_t next_index;
-	void *value;
-} SliceIter;
+#define _slice_header(s) ((SliceHeader*)(void*)(s) - 1)
 
-void slice_init(Slice *slice, size_t size);
+#define sinit(type, ...) slice_init(type, __VA_ARGS__)
 
-void slice_deinit(Slice *slice);
+#define sdeinit(slice) slice_deinit(slice)
 
-void slice_clear(Slice *slice);
+#define slice_init(type, ...) \
+    _Pragma("clang diagnostic push") \
+    _Pragma("clang diagnostic ignored \"-Winitializer-overrides\"") \
+    (type*)_slice_init(sizeof(type), (SliceParams){ .allocator = std_allocator, .reserve = 2, __VA_ARGS__}) \
+    _Pragma("clang diagnostic pop")
 
-static inline size_t slice_len(const Slice *slice) {
-	assert(slice != NULL);
-	return slice->len; 
+#define slice_deinit(slice) (_slice_header(slice)->allocator.free(_slice_header(slice)))
+
+static inline void *_slice_init(size_t size, SliceParams params) {
+	SliceHeader *s = params.allocator.malloc(sizeof(SliceHeader) + (size * params.reserve));
+	s->allocator = params.allocator;
+	s->cap = params.reserve;
+	s->size = size;
+	s->len = 0;
+	return s + 1;
 }
 
-void *slice_push(Slice *slice, void *value);
+// void slice_clear(Slice *slice);
 
-void *slice_pop(Slice *slice, void *buffer);
+static inline size_t slice_len(void *slice) {
+	assert(slice != NULL);
+	return _slice_header(slice)->len; 
+}
 
-void *slice_shift(Slice *slice, void *buffer);
+// void *slice_push(Slice *slice, void *value);
 
-void *slice_unshift(Slice *slice, void *buffer);
+// void *slice_pop(Slice *slice, void *buffer);
 
-void *slice_at(Slice *slice, size_t index);
+// void *slice_shift(Slice *slice, void *buffer);
 
-void *slice_get(Slice *slice, size_t index, void *buffer);
+// void *slice_unshift(Slice *slice, void *buffer);
 
-void *slice_set(Slice *slice, size_t index, void *value);
+// void *slice_at(Slice *slice, size_t index);
 
-void *slice_insert(Slice *slice, size_t index, void *value);
+// void *slice_get(Slice *slice, size_t index, void *buffer);
 
-void slice_remove(Slice *slice, size_t index);
+// void *slice_set(Slice *slice, size_t index, void *value);
 
-size_t slice_shrink(Slice *slice);
+// void *slice_insert(Slice *slice, size_t index, void *value);
 
-Slice *slice_reserve(Slice *slice, size_t new_cap);
+// void slice_remove(Slice *slice, size_t index);
 
-bool slice_contains(Slice *slice, size_t index);
+// size_t slice_shrink(Slice *slice);
 
-SliceIter slice_iter(Slice* slice);
+// Slice *slice_reserve(Slice *slice, size_t new_cap);
 
-void *slice_next(SliceIter *iterator);
+// bool slice_contains(Slice *slice, size_t index);
 
-Slice *slice_assign(Slice *dest, Slice *src);
+// SliceIter slice_iter(Slice* slice);
+
+// void *slice_next(SliceIter *iterator);
+
+// Slice *slice_assign(Slice *dest, Slice *src);
 
 /* TODO BLOCK */
 // slice_earase
