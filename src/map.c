@@ -80,20 +80,20 @@ static bool _map_resize(MapHeader *m, size_t new_cap) {
     return true;
 }
 
-void _map_init(void *hdr, size_t key_size, size_t val_size, size_t val_offset, size_t entry_stride, Allocator alloc, size_t reserve) {
+void _map_init(void *hdr, size_t key_size, size_t val_size, size_t val_offset, size_t entry_stride, MapOptions params) {
     MapHeader *m = (MapHeader*)hdr;
-    m->alloc = alloc;
+    m->alloc = params.allocator;
     m->key_size = key_size;
     m->val_size = val_size;
     m->val_offset = val_offset;
     m->entry_stride = entry_stride;
-    m->hash = _map_murmur3_64;
+    m->hash = params.hash;
     m->len = 0;
 
-    size_t cap = reserve > 0 ? reserve : _MAP_INIT_CAP;
+    size_t cap = params.reserve > 0 ? params.reserve : _MAP_INIT_CAP;
     m->cap = cap;
-    _map_entries(m) = alloc.calloc(cap, m->entry_stride);
-    _map_occupied(m) = alloc.calloc(cap, 1);
+    _map_entries(m) = params.allocator.calloc(cap, m->entry_stride);
+    _map_occupied(m) = params.allocator.calloc(cap, 1);
 }
 
 void _map_deinit(void *hdr) {
@@ -102,13 +102,12 @@ void _map_deinit(void *hdr) {
     m->alloc.free(_map_occupied(m));
 }
 
-bool _map_set(void *hdr, const void *key, void *val) {
-    MapHeader *m = (MapHeader*)hdr;
-    if (m->len >= m->cap * _MAP_MAX_LOAD) {
-        if (!_map_resize(m, m->cap * 2))
-            return false;
-    }
+typedef struct {
+    bool found;
+    size_t slot;
+} _MapProbeResult;
 
+static _MapProbeResult _map_probe(MapHeader *m, const void *key) {
     size_t hash = m->hash(key, m->key_size);
     size_t idx = hash & (m->cap - 1);
     size_t first_tomb = m->cap;
@@ -119,41 +118,43 @@ bool _map_set(void *hdr, const void *key, void *val) {
 
         if (state == 0) {
             size_t target = first_tomb < m->cap ? first_tomb : slot;
-            OCC(m, target) = 1;
-            memcpy(KEY(m, target), key, m->key_size);
-            memcpy(VAL(m, target), val, m->val_size);
-            m->len++;
-            return true;
+            return (_MapProbeResult){ .found = false, .slot = target };
         }
         if (state == 2) {
-            if (first_tomb == m->cap)
-                first_tomb = slot;
+            if (first_tomb == m->cap) first_tomb = slot;
             continue;
         }
-        if (memcmp(KEY(m, slot), key, m->key_size) == 0) {
-            memcpy(VAL(m, slot), val, m->val_size);
-            return false;
-        }
+        if (memcmp(KEY(m, slot), key, m->key_size) == 0)
+            return (_MapProbeResult){ .found = true, .slot = slot };
     }
-    return false;
+    return (_MapProbeResult){ .found = false, .slot = m->cap };
+}
+
+bool _map_set(void *hdr, const void *key, void *val) {
+    MapHeader *m = (MapHeader*)hdr;
+    if (m->len >= m->cap * _MAP_MAX_LOAD) {
+        if (!_map_resize(m, m->cap * 2))
+            return false;
+    }
+
+    _MapProbeResult r = _map_probe(m, key);
+    if (r.found) {
+        memcpy(VAL(m, r.slot), val, m->val_size);
+        return false;
+    }
+    OCC(m, r.slot) = 1;
+    memcpy(KEY(m, r.slot), key, m->key_size);
+    memcpy(VAL(m, r.slot), val, m->val_size);
+    m->len++;
+    return true;
 }
 
 void *_map_get(void *hdr, const void *key) {
     MapHeader *m = (MapHeader*)hdr;
     if (m->cap == 0) return NULL;
 
-    size_t hash = m->hash(key, m->key_size);
-    size_t idx = hash & (m->cap - 1);
-
-    for (size_t i = 0; i < m->cap; i++) {
-        size_t slot = (idx + i) & (m->cap - 1);
-        uint8_t state = OCC(m, slot);
-        if (state == 0) return NULL;
-        if (state == 2) continue;
-        if (memcmp(KEY(m, slot), key, m->key_size) == 0)
-            return VAL(m, slot);
-    }
-    return NULL;
+    _MapProbeResult r = _map_probe(m, key);
+    return r.found ? VAL(m, r.slot) : NULL;
 }
 
 bool _map_has(void *hdr, const void *key) {
@@ -164,19 +165,10 @@ void _map_remove(void *hdr, const void *key) {
     MapHeader *m = (MapHeader*)hdr;
     if (m->cap == 0) return;
 
-    size_t hash = m->hash(key, m->key_size);
-    size_t idx = hash & (m->cap - 1);
-
-    for (size_t i = 0; i < m->cap; i++) {
-        size_t slot = (idx + i) & (m->cap - 1);
-        uint8_t state = OCC(m, slot);
-        if (state == 0) return;
-        if (state == 2) continue;
-        if (memcmp(KEY(m, slot), key, m->key_size) == 0) {
-            OCC(m, slot) = 2;
-            m->len--;
-            return;
-        }
+    _MapProbeResult r = _map_probe(m, key);
+    if (r.found) {
+        OCC(m, r.slot) = 2;
+        m->len--;
     }
 }
 

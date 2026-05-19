@@ -13,7 +13,7 @@ typedef const char Str64[64];
 
 void test_map_int_int(void) {
     Map(int, int) m;
-    map_init(&m, test_allocator, 0);
+    map_init(&m, .allocator = test_allocator);
     assert(map_len(&m) == 0);
 
     map_set(&m, 10, 100);
@@ -48,7 +48,7 @@ void test_map_int_int(void) {
 
 void test_map_update(void) {
     Map(int, int) m;
-    map_init(&m, test_allocator, 4);
+    map_init(&m, .allocator = test_allocator, .reserve = 4);
 
     map_set(&m, 1, 10);
     map_set(&m, 1, 99);
@@ -60,7 +60,7 @@ void test_map_update(void) {
 
 void test_map_many(void) {
     Map(int, int) m;
-    map_init(&m, test_allocator, 4);
+    map_init(&m, .allocator = test_allocator, .reserve = 4);
 
     int n = 1000;
     for (int i = 0; i < n; i++)
@@ -88,7 +88,7 @@ void test_map_many(void) {
 
 void test_map_str_key(void) {
     Map(Str64, int) m;
-    map_init(&m, test_allocator, 4);
+    map_init(&m, .allocator = test_allocator, .reserve = 4);
 
     map_set(&m, "hello", 1);
     map_set(&m, "world", 2);
@@ -108,7 +108,7 @@ void test_map_str_key(void) {
 
 void test_map_struct_val(void) {
     Map(int, Point) m;
-    map_init(&m, test_allocator, 4);
+    map_init(&m, .allocator = test_allocator, .reserve = 4);
 
     map_set(&m, 1, ((Point){10, 20}));
     map_set(&m, 2, ((Point){30, 40}));

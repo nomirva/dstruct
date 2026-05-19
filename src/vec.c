@@ -1,10 +1,11 @@
 #include "vec.h"
 #include <assert.h>
 
-void _vec_init(void *hdr, size_t elem_size, VecParams params) {
+void _vec_init(void *hdr, size_t elem_size, VecOptions params) {
     VecHeader *v = (VecHeader*)hdr;
     v->alloc = params.allocator;
     v->elem_size = elem_size;
+    v->growth_fct = params.growth_fct;
     v->cap = 0;
     v->len = 0;
     _vec_data(hdr) = NULL;
@@ -25,7 +26,7 @@ void _vec_deinit(void *hdr) {
 void _vec_grow(void *hdr) {
     VecHeader *v = (VecHeader*)hdr;
     if (v->len >= v->cap) {
-        size_t new_cap = v->cap ? (size_t)(v->cap * _VEC_GROWTH) : 2;
+        size_t new_cap = v->cap ? (size_t)(v->cap * v->growth_fct) : 2;
         _vec_reserve(hdr, new_cap);
     }
 }

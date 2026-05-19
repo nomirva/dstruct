@@ -9,11 +9,13 @@ typedef struct { int x; int y; } Point;
 
 static void example_int_int(void) {
     Map(int, int) m;
-    map_init(&m, std_allocator, 0);
+    map_init(&m, .allocator = std_allocator);
 
     map_set(&m, 1, 100);
     map_set(&m, 2, 200);
     map_set(&m, 3, 300);
+
+    char val = map_get(&m, 1);
 
     printf("int->int: len=%zu, get(1)=%d, get(2)=%d, get(3)=%d\n",
         map_len(&m), *map_get(&m, 1), *map_get(&m, 2), *map_get(&m, 3));
@@ -30,7 +32,7 @@ static void example_int_int(void) {
 
 static void example_str_int(void) {
     Map(Str64, int) m;
-    map_init(&m, std_allocator, 0);
+    map_init(&m, .allocator = std_allocator);
 
     map_set(&m, "hello", 1);
     map_set(&m, "world", 2);
@@ -51,7 +53,7 @@ static void example_str_int(void) {
 
 static void example_cstr_int(void) {
     Map(CStr, int) m;
-    map_init(&m, std_allocator, 0);
+    map_init(&m, .allocator = std_allocator);
 
     map_set(&m, "one", 1);
     map_set(&m, "two", 2);
@@ -70,7 +72,7 @@ static void example_cstr_int(void) {
 
 static void example_int_struct(void) {
     Map(int, Point) m;
-    map_init(&m, std_allocator, 0);
+    map_init(&m, .allocator = std_allocator);
 
     map_set(&m, 1, ((Point){10, 20}));
     map_set(&m, 2, ((Point){30, 40}));
@@ -88,7 +90,7 @@ static void example_int_struct(void) {
 
 static void example_int_double(void) {
     Map(int, double) m;
-    map_init(&m, std_allocator, 0);
+    map_init(&m, .allocator = std_allocator);
 
     map_set(&m, 1, 10.5);
     map_set(&m, 2, 20.5);
