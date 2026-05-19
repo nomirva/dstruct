@@ -1,0 +1,6 @@
+@echo off
+echo Building example_vec...
+zig cc -std=c23 -Wall -Wextra example/example_vec.c src/vec.c src/allocator.c -Isrc -Itest -o out/example_vec.exe
+echo Building example_map...
+zig cc -std=c23 -Wall -Wextra example/example_map.c src/map.c src/allocator.c -Isrc -Itest -o out/example_map.exe
+echo All examples built.

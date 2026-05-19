@@ -1,24 +1,23 @@
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
-
-#include <slice.h>
 
 #define TEST_MESSAGE_OFF
 #include "test.h"
 
 #include "tallocator.h"
-
-// #include "slice.h"
+#include "vec.h"
 
 int main(void) {
+    Vector(int) v;
+    vec_init(&v, .allocator = test_allocator, .reserve = 2);
 
-    int *numbers_s = sinit(int, .allocator = test_allocator);
+    vec_push(&v, 42);
+    assert(vec_get(&v, 0) == 42);
 
-    numbers_s[0] = 45;
-    printf("%d\n", numbers_s[0]);
+    vec_push(&v, 7);
+    assert(vec_pop(&v) == 7);
 
-    // sdeinit(numbers_s);
+    vec_deinit(&v);
 
     printf("All tests complete!");
 

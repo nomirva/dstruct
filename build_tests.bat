@@ -1,0 +1,6 @@
+@echo off
+echo Building tvec tests...
+zig cc -std=c23 -Wall -Wextra src/allocator.c src/vec.c test/tallocator.c test/tvec.c -Isrc -Itest -o out/tvec.exe
+echo Building tmap tests...
+zig cc -std=c23 -Wall -Wextra src/allocator.c src/map.c test/tallocator.c test/tmap.c -Isrc -Itest -o out/tmap.exe
+echo All tests built.

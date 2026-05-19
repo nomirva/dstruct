@@ -1,1 +1,0 @@
-clang ./src/*.c ./test/*.c -I./src -Wall -Wextra -o .\out\test.exe && .\out\test.exe 
